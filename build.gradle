@@ -1,0 +1,28 @@
+plugins {
+    id 'java'
+}
+
+group 'org.fintech'
+version '1.0-SNAPSHOT'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.1'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.8.1'
+    compileOnly 'org.projectlombok:lombok:1.18.34'
+    annotationProcessor 'org.projectlombok:lombok:1.18.34'
+    implementation group: 'com.fasterxml.jackson.dataformat', name: 'jackson-dataformat-xml', version: '2.17.2'
+    implementation group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.17.1'
+    implementation group: 'org.slf4j', name: 'slf4j-api', version: '2.0.13'
+    implementation 'org.apache.logging.log4j:log4j-slf4j-impl:2.20.0' // Замените на актуальную версию
+    implementation("ch.qos.logback:logback-classic:1.4.11")
+
+
+}
+
+test {
+    useJUnitPlatform()
+}
