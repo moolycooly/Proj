@@ -15,5 +15,11 @@ public class Main {
         Optional<String> xml = fileService.toXML(city.orElse(null));
         fileService.saveFile("template.xml", xml.orElse(null));
 
+
+        String pathError = "src/main/resources/city-error.json";
+        Optional<City> cityError = fileService.jsonParser(new File(pathError), City.class);
+        Optional<String> xmlError = fileService.toXML(cityError.orElse(null));
+        fileService.saveFile(path, xmlError.orElse(null));
+
     }
 }
