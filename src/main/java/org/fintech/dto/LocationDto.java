@@ -9,11 +9,11 @@ import lombok.*;
 @AllArgsConstructor
 @NoArgsConstructor
 public class LocationDto extends AbstractDto{
-    private Long id;
+    Long id;
     @NotNull
     @Size(min = 1, max = 50)
-    private String slug;
+    String slug;
     @Size(min = 1, max = 50)
     @NotNull
-    private String name;
+    String name;
 }

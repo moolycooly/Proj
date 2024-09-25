@@ -7,8 +7,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 
 public abstract class CrudReposImpl<T extends AbstractEntity> implements  CrudRepos<T,Long>{
-    private final Map<Long,T> dataStore = new ConcurrentHashMap<>();
-    private final AtomicLong counter = new AtomicLong();
+    protected final Map<Long,T> dataStore = new ConcurrentHashMap<>();
+    protected final AtomicLong counter = new AtomicLong();
 
     @Override
     public T save(T entity)  {

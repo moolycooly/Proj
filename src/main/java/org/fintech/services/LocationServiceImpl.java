@@ -8,7 +8,6 @@ import org.fintech.dto.LocationDto;
 import org.fintech.store.entity.LocationEntity;
 import org.fintech.store.repos.LocationRepos;
 import org.modelmapper.ModelMapper;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.annotation.Profile;
 import org.springframework.context.event.EventListener;
@@ -20,10 +19,11 @@ import java.util.List;
 @Slf4j
 @Service
 public class LocationServiceImpl extends CrudServiceImpl<LocationEntity, LocationDto> implements LocationService {
-    @Autowired
-    private KudagoClient kudagoClient;
-    public LocationServiceImpl(LocationRepos locationRepos, ModelMapper modelMapper) {
+
+    private final KudagoClient kudagoClient;
+    public LocationServiceImpl(LocationRepos locationRepos, ModelMapper modelMapper, KudagoClient kudagoClient) {
         super(locationRepos, LocationEntity.class, LocationDto.class, modelMapper);
+        this.kudagoClient = kudagoClient;
     }
 
     @Profile("sergeyT")
