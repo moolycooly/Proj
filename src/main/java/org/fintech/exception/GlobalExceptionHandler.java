@@ -12,10 +12,6 @@ import java.util.*;
 @ControllerAdvice
 public class GlobalExceptionHandler {
 
-  @ExceptionHandler(NoSuchElementException.class)
-  public ResponseStatusException elementNotFound(NoSuchElementException e) {
-    return new ResponseStatusException(HttpStatus.NOT_FOUND,e.getMessage());
-  }
   @ExceptionHandler(MethodArgumentNotValidException.class)
   public ResponseStatusException methodArgumentNotValid(MethodArgumentNotValidException e) {
     Map<String, String> errors = new HashMap<>();

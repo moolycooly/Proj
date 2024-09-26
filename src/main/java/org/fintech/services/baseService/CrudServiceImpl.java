@@ -34,14 +34,14 @@ public abstract class CrudServiceImpl<E extends AbstractEntity, D extends Abstra
 
     @Override
     public void update(Long id, D dto) {
-        this.isExistEntity(id);
+        isExistEntity(id);
         crudRepos.update(id, modelMapper.map(dto, entityClass));
 
     }
 
     @Override
     public void deleteById(Long id) {
-        this.isExistEntity(id);
+        isExistEntity(id);
         crudRepos.deleteById(id);
     }
 
@@ -55,8 +55,6 @@ public abstract class CrudServiceImpl<E extends AbstractEntity, D extends Abstra
     }
     public void isExistEntity(Long id) {
         crudRepos.findById(id)
-                .orElseThrow(() -> new NoSuchElementException(String
-                        .format("%s with id: %d doesnt exists",
-                                entityClass.getSimpleName(), id)));
+                .orElseThrow(NoSuchElementException::new);
     }
 }

@@ -8,6 +8,7 @@ import org.fintech.services.LocationService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -45,6 +46,10 @@ public class LocationRestController {
     public ResponseEntity<?> deleteLocation(@PathVariable("id") Long id) {
         locationService.deleteById(id);
         return ResponseEntity.noContent().build();
+    }
+    @ExceptionHandler(NoSuchElementException.class)
+    public ResponseStatusException elementNotFound(NoSuchElementException e) {
+        return new ResponseStatusException(HttpStatus.NOT_FOUND,"Location was not found");
     }
 
 }

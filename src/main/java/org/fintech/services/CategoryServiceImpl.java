@@ -9,7 +9,6 @@ import org.fintech.store.entity.CategoryEntity;
 import org.fintech.store.repos.CategoryRepos;
 import org.modelmapper.ModelMapper;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
-import org.springframework.context.annotation.Profile;
 import org.springframework.context.event.EventListener;
 import org.springframework.core.env.Profiles;
 import org.springframework.stereotype.Service;
@@ -24,7 +23,7 @@ public class CategoryServiceImpl extends CrudServiceImpl<CategoryEntity, Categor
         super(categoryRepos, CategoryEntity.class, CategoryDto.class, modelMapper);
         this.kudagoClient = kudagoClient;
     }
-    @Profile("sergeyT")
+    @Override
     @Timelog
     @EventListener(ApplicationReadyEvent.class)
     public void init(ApplicationReadyEvent event) {
