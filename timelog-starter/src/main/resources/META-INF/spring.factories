@@ -1,1 +1,1 @@
-org.springframework.boot.autoconfigure.EnableAutoConfiguration=org.fintech.config.TimeLogAspect
+org.springframework.boot.autoconfigure.EnableAutoConfiguration=org.fintech.config.TimeLogConfiguration

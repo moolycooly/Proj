@@ -29,7 +29,6 @@ public class CategoryRestControllerTest {
     private final ObjectMapper objectMapper = new ObjectMapper();
     private final String url = "/api/v1/places/categories";
 
-
     @Test
     void getAllCategories_ReturnsValidResponseEntity_emptyContent() throws Exception {
          mockMvc.perform(get(url))
