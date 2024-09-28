@@ -1,0 +1,8 @@
+kudago:
+  api:
+    base-url: https://kudago.com/public-api/v1.4
+    endpoints:
+      get-categories:
+        url: /place-categories/
+      get-locations:
+        url: /locations/
