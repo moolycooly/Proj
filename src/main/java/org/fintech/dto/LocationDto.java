@@ -13,9 +13,9 @@ import lombok.experimental.FieldDefaults;
 public class LocationDto extends AbstractDto{
     Long id;
     @NotNull
-    @Size(min = 1, max = 50)
+    @Size(min = 2, max = 50)
     String slug;
-    @Size(min = 1, max = 50)
+    @Size(min = 2, max = 50)
     @NotNull
     String name;
 }

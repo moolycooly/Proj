@@ -1,145 +1,183 @@
 package org.fintech.controllers;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.fintech.dto.LocationDto;
+import org.fintech.services.LocationService;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.http.MediaType;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.web.servlet.MockMvc;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.http.HttpStatus;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import java.util.List;
+import java.util.NoSuchElementException;
+import java.util.Optional;
 
-@SpringBootTest
-@AutoConfigureMockMvc(printOnlyOnFailure=false)
-@ActiveProfiles("test")
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 
+@ExtendWith(MockitoExtension.class)
 public class LocationRestControllerTest {
-    @Autowired
-    private MockMvc mockMvc;
-    private final ObjectMapper objectMapper = new ObjectMapper();
-    private final String url = "/api/v1/locations";
+    @Mock
+    private LocationService locationService;
 
-
-    @Test
-    void getAllLocations_ReturnsValidResponseEntity_emptyContent() throws Exception {
-        mockMvc.perform(get(url))
-                .andExpectAll(
-                        status().isOk(),
-                        content().contentType(MediaType.APPLICATION_JSON),
-                        content().json("[]"));
-    }
-    @Test
-    void getLocationById_ReturnsValidResponseEntity_ContentNotEmpty() throws Exception {
-
-        var location = createLocation(null,"test-slug","test-name");
-
-
-        mockMvc.perform(get(url + "/" + location.getId()))
-                .andExpectAll(
-                        status().isOk(),
-                        content().contentType(MediaType.APPLICATION_JSON),
-                        content()
-                                .json(objectMapper.writeValueAsString(location)));
-        deleteLocation(location.getId());
-    }
-    @Test
-    void getLocationById_ReturnsValidResponseEntity_Id_DoesNotExist() throws Exception {
-        mockMvc.perform(get(url + "/1"))
-                .andExpectAll(
-                        status().isNotFound(),
-                        content().contentType(MediaType.APPLICATION_PROBLEM_JSON));
-    }
-
+    @InjectMocks
+    private LocationRestController locationRestController;
 
     @Test
-    void createNewLocation_PayloadIsValid_ReturnsValidResponseEntity() throws Exception {
+    void getLocations_LocationsDoNotExist_ReturnsEmptyList() {
+        //given
+        when(locationService.findAll()).thenReturn(List.of());
 
-        var location = new LocationDto(null,"test-slug", "test-name");
+        //when
+        var result = locationRestController.getLocations();
 
+        //then
+        assertNotNull(result);
+        assertTrue(result.isEmpty());
 
-        var requestBuilder = post(url)
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(location));
-        var response = mockMvc.perform(requestBuilder)
-                .andExpectAll(
-                        status().isCreated(),
-                        content().contentType(MediaType.APPLICATION_JSON))
-                .andReturn().getResponse();
-        var location1 =  objectMapper.readValue(response.getContentAsString(), LocationDto.class);
-        deleteLocation(location1.getId());
-        assertEquals(location1.getSlug(),location.getSlug());
-        assertEquals(location.getName(),location.getName());
+        verify(locationService, times(1)).findAll();
+        verifyNoMoreInteractions(locationService);
+    }
 
+    @Test
+    void getLocations_LocationsExist_ReturnsListOfCategories() {
+        //given
+        var locationDto = new LocationDto(1L, "test-slug", "test-name");
+        when(locationService.findAll()).thenReturn(List.of(locationDto));
+
+        //when
+        var result = locationRestController.getLocations();
+
+        //then
+        assertNotNull(result);
+        assertEquals(List.of(locationDto), result);
+
+        verify(locationService, times(1)).findAll();
+        verifyNoMoreInteractions(locationService);
+    }
+
+    @Test
+    void getLocation_LocationDoesNotExist_ReturnsNotFound() {
+        //given
+        Long locationId = 1L;
+        when(locationService.findById(locationId)).thenReturn(Optional.empty());
+
+        //when
+        var exception = assertThrows(NoSuchElementException.class,
+                () -> locationRestController.getLocation(locationId));
+        //then
+        assertEquals(exception.getMessage(),"Location with id: 1 not found");
+
+        verify(locationService, times(1)).findById(locationId);
+        verifyNoMoreInteractions(locationService);
+    }
+
+    @Test
+    void getLocation_LocationExists_ReturnsLocation() {
+        //given
+        Long locationId = 1L;
+        var locationDto = new LocationDto(locationId, "test-slug", "Test Category");
+        when(locationService.findById(locationId)).thenReturn(Optional.of(locationDto));
+
+        //when
+        var result = locationRestController.getLocation(locationId);
+
+        //then
+        assertNotNull(result);
+        assertEquals(result, locationDto);
+
+        verify(locationService, times(1)).findById(locationId);
+        verifyNoMoreInteractions(locationService);
+    }
+
+    @Test
+    void createLocation_RequestIsValid_ReturnsNewLocation() {
+        //given
+        var locationDto = new LocationDto(1L, "test-slug", "test-name");
+        when(locationService.create(locationDto)).thenReturn(locationDto);
+
+        //when
+        var response = locationRestController.createLocation(locationDto);
+
+        //then
+        assertNotNull(response);
+        assertEquals(HttpStatus.CREATED, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertEquals(locationDto, response.getBody());
+
+        verify(locationService, times(1)).create(locationDto);
+        verifyNoMoreInteractions(locationService);
+    }
+
+    @Test
+    void updateLocation_RequestIsValid_ReturnsNoContent() {
+        //given
+        Long locationId = 1L;
+        var locationDto = new LocationDto(null, "test-slug", "test-name");
+        doNothing().when(locationService).update(locationId,locationDto);
+
+        //when
+        var response = locationRestController.updateLocation(locationId, locationDto);
+
+        //then
+        assertNotNull(response);
+        assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
+
+        verify(locationService, times(1)).update(locationId,locationDto);
+        verifyNoMoreInteractions(locationService);
+    }
+
+    @Test
+    void updateLocation_LocationDoesNotExist_ThrowsNoSuchElementException() {
+        //given
+        Long locationId = 1L;
+        var locationDto = new LocationDto(null, "test-slug", "test-name");
+
+        doThrow(new NoSuchElementException("Location with id: " + locationId + " not found"))
+                .when(locationService).update(locationId, locationDto);
+
+        //when
+        var exception = assertThrows(NoSuchElementException.class, () ->
+                locationRestController.updateLocation(locationId, locationDto));
+
+        //then
+        assertEquals("Location with id: 1 not found", exception.getMessage());
+        verify(locationService, times(1)).update(locationId, locationDto);
+        verifyNoMoreInteractions(locationService);
     }
     @Test
-    void createNewLocation_PayloadIsInvalid_ReturnsValidResponseEntity() throws Exception {
-        // given
+    void deleteLocation_LocationExists_ReturnsNoContent() {
+        //given
+        Long locationId = 1L;
+        doNothing().when(locationService).deleteById(locationId);
 
-        var location = new LocationDto(null, null, "test-slug");
-        var requestBuilder = post(url)
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(location));
-        mockMvc.perform(requestBuilder)
-                .andExpectAll(
-                        status().isBadRequest(),
-                        content().contentType(MediaType.APPLICATION_PROBLEM_JSON));
+        //when
+        var response = locationRestController.deleteLocation(locationId);
 
+        //then
+        assertNotNull(response);
+        assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
+
+        verify(locationService, times(1)).deleteById(locationId);
+        verifyNoMoreInteractions(locationService);
     }
     @Test
-    void deleteLocation_PayloadIsValid_ReturnsValidResponseEntity() throws Exception {
-        var location = createLocation(null,"test-slug","test-name");
-        deleteLocation(location.getId());
-        mockMvc.perform(delete(url + "/" + location.getId()))
-                .andExpectAll(
-                        status().isNotFound());
+    void deleteLocation_LocationDoesNotExist_ThrowsNoSuchElementException() {
+        //given
+        Long locationId = 1L;
+        doThrow(new NoSuchElementException("Location with id: " + locationId + " not found"))
+                .when(locationService).deleteById(locationId);
 
+        //when
+        NoSuchElementException exception = assertThrows(NoSuchElementException.class, () ->
+                locationRestController.deleteLocation(locationId)
+        );
+        //then
+        assertEquals("Location with id: 1 not found", exception.getMessage());
+
+        verify(locationService, times(1)).deleteById(locationId);
+        verifyNoMoreInteractions(locationService);
     }
-    @Test
-    public void updateLocation_PayloadIsValid_ReturnsValidResponseEntity() throws Exception {
-        var location = createLocation(null,"test-slug","test-name");
-
-        var payload = new LocationDto(null,"new-slug","new-name");
-
-        mockMvc.perform(put(url + "/" + location.getId())
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(payload)))
-                .andExpectAll(
-                        status().isNoContent())
-                .andReturn()
-                .getResponse();
-        var mvcResponse = mockMvc.perform(get(url + "/" + location.getId()))
-                .andExpectAll(
-                        status().isOk(),
-                        content().contentType(MediaType.APPLICATION_JSON)
-                ).andReturn().getResponse();
-
-        var updatedLocation = objectMapper.readValue(mvcResponse.getContentAsString(), LocationDto.class);
-        assertEquals(updatedLocation.getId(),location.getId());
-        assertEquals(updatedLocation.getSlug(),payload.getSlug());
-        assertEquals(updatedLocation.getName(),payload.getName());
-        deleteLocation(location.getId());
-    }
-    LocationDto createLocation(Long id, String slug, String name) throws Exception {
-        var location = new LocationDto(id,slug,name);
-        var requestBuilder = post(url)
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(location));
-        var response = mockMvc.perform(requestBuilder)
-                .andExpectAll(
-                        status().isCreated(),
-                        content().contentType(MediaType.APPLICATION_JSON))
-                .andReturn().getResponse();
-        return objectMapper.readValue(response.getContentAsString(), LocationDto.class);
-    }
-    void deleteLocation(Long id) throws Exception {
-        mockMvc.perform(delete(url+"/"+id))
-                .andExpect(status().isNoContent());
-    }
-
 }
