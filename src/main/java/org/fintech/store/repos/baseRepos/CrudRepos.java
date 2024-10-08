@@ -9,5 +9,5 @@ public interface CrudRepos<T,V> {
     List<T> findAll();
     void deleteById(V id);
     void update(V id, T entity);
-
+    void clear();
 }

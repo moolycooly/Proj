@@ -12,10 +12,10 @@ import lombok.experimental.FieldDefaults;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class CategoryDto extends AbstractDto {
     Long id;
-    @Size(min = 1, max = 50)
+    @Size(min = 2, max = 50)
     @NotNull
     String slug;
-    @Size(min = 1, max = 50)
+    @Size(min = 2, max = 50)
     @NotNull
     String name;
 }

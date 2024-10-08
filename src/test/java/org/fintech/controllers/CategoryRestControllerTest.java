@@ -1,148 +1,186 @@
 package org.fintech.controllers;
 
-
-import com.fasterxml.jackson.databind.ObjectMapper;
+import org.fintech.services.CategoryService;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.fintech.dto.CategoryDto;
+import org.springframework.http.HttpStatus;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.http.MediaType;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.web.servlet.MockMvc;
+import java.util.List;
+import java.util.NoSuchElementException;
+import java.util.Optional;
 
-import org.fintech.dto.*;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-
-@SpringBootTest
-@AutoConfigureMockMvc(printOnlyOnFailure=false)
-@ActiveProfiles("test")
-
+@ExtendWith(MockitoExtension.class)
 public class CategoryRestControllerTest {
-    @Autowired
-    private MockMvc mockMvc;
-    private final ObjectMapper objectMapper = new ObjectMapper();
-    private final String url = "/api/v1/places/categories";
+
+    @Mock
+    private CategoryService categoryService;
+
+    @InjectMocks
+    private CategoryRestController categoryRestController;
 
     @Test
-    void getAllCategories_ReturnsValidResponseEntity_emptyContent() throws Exception {
-         mockMvc.perform(get(url))
-                .andExpectAll(
-                        status().isOk(),
-                        content().contentType(MediaType.APPLICATION_JSON),
-                          content().json("[]"));
+    void getCategories_CategoriesDoNotExist_ReturnsEmptyList() {
+        //given
+        when(categoryService.findAll()).thenReturn(List.of());
+
+        //when
+        var result = categoryRestController.getCategories();
+
+        //then
+        assertNotNull(result);
+        assertTrue(result.isEmpty());
+
+        verify(categoryService, times(1)).findAll();
+        verifyNoMoreInteractions(categoryService);
     }
-    @Test
-    void getCategoryById_ReturnsValidResponseEntity_ContentNotEmpty() throws Exception {
-
-        var category = createCategory(null,"test-slug","test-name");
-
-
-        mockMvc.perform(get(url + "/" + category.getId()))
-                .andExpectAll(
-                        status().isOk(),
-                        content().contentType(MediaType.APPLICATION_JSON),
-                        content()
-                                .json(objectMapper.writeValueAsString(category)));
-        deleteCategory(category.getId());
-    }
-    @Test
-    void getCategoryById_ReturnsValidResponseEntity_Id_DoesNotExist() throws Exception {
-        mockMvc.perform(get(url + "/1"))
-                .andExpectAll(
-                        status().isNotFound(),
-                        content().contentType(MediaType.APPLICATION_PROBLEM_JSON));
-    }
-
 
     @Test
-    void createNewCategory_PayloadIsValid_ReturnsValidResponseEntity() throws Exception {
+    void getCategories_CategoriesExist_ReturnsListOfCategories() {
+        //given
+        var categoryDto = new CategoryDto(1L, "test-slug", "test-name");
+        when(categoryService.findAll()).thenReturn(List.of(categoryDto));
 
-        var category = new CategoryDto(null,"test-slug", "test-name");
+        //when
+        var result = categoryRestController.getCategories();
 
+        //then
+        assertNotNull(result);
+        assertEquals(List.of(categoryDto), result);
 
-        var requestBuilder = post(url)
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(category));
-        var response = mockMvc.perform(requestBuilder)
-                .andExpectAll(
-                        status().isCreated(),
-                        content().contentType(MediaType.APPLICATION_JSON))
-                        .andReturn().getResponse();
-        var categoryDto1 =  objectMapper.readValue(response.getContentAsString(), CategoryDto.class);
-        deleteCategory(categoryDto1.getId());
-        assertEquals(categoryDto1.getSlug(),category.getSlug());
-        assertEquals(category.getName(),category.getName());
+        verify(categoryService, times(1)).findAll();
+        verifyNoMoreInteractions(categoryService);
+    }
 
+    @Test
+    void getCategory_CategoryDoesNotExist_ReturnsNotFound() {
+        //given
+        Long categoryId = 1L;
+        when(categoryService.findById(categoryId)).thenReturn(Optional.empty());
+
+        //when
+        var exception = assertThrows(NoSuchElementException.class,
+                () -> categoryRestController.getCategory(categoryId));
+        //then
+        assertEquals(exception.getMessage(),"Category with id: 1 not found");
+
+        verify(categoryService, times(1)).findById(categoryId);
+        verifyNoMoreInteractions(categoryService);
+    }
+
+    @Test
+    void getCategory_CategoryExists_ReturnsCategory() {
+        //given
+        Long categoryId = 1L;
+        var categoryDto = new CategoryDto(categoryId, "test-slug", "Test Category");
+        when(categoryService.findById(categoryId)).thenReturn(Optional.of(categoryDto));
+
+        //when
+        var result = categoryRestController.getCategory(categoryId);
+
+        //then
+        assertNotNull(result);
+        assertEquals(result, categoryDto);
+
+        verify(categoryService, times(1)).findById(categoryId);
+        verifyNoMoreInteractions(categoryService);
+    }
+
+    @Test
+    void createCategory_RequestIsValid_ReturnsNewCategory() {
+        //given
+        var categoryDto = new CategoryDto(1L, "test-slug", "test-name");
+        when(categoryService.create(categoryDto)).thenReturn(categoryDto);
+
+        //when
+        var response = categoryRestController.createCategory(categoryDto);
+
+        //then
+        assertNotNull(response);
+        assertEquals(HttpStatus.CREATED, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertEquals(categoryDto, response.getBody());
+
+        verify(categoryService, times(1)).create(categoryDto);
+        verifyNoMoreInteractions(categoryService);
+    }
+
+    @Test
+    void updateCategory_RequestIsValid_ReturnsNoContent() {
+        //given
+        Long categoryId = 1L;
+        var categoryDto = new CategoryDto(null, "test-slug", "test-name");
+        doNothing().when(categoryService).update(categoryId,categoryDto);
+
+        //when
+        var response = categoryRestController.updateCategory(categoryId, categoryDto);
+
+        //then
+        assertNotNull(response);
+        assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
+
+        verify(categoryService, times(1)).update(categoryId,categoryDto);
+        verifyNoMoreInteractions(categoryService);
+    }
+
+    @Test
+    void updateCategory_CategoryDoesNotExist_ThrowsNoSuchElementException() {
+        //given
+        Long categoryId = 1L;
+        var categoryDto = new CategoryDto(null, "test-slug", "test-name");
+
+        doThrow(new NoSuchElementException("Category with id: " + categoryId + " not found"))
+                .when(categoryService).update(categoryId,categoryDto);
+
+        //when
+        var exception = assertThrows(NoSuchElementException.class, () ->
+            categoryRestController.updateCategory(categoryId, categoryDto));
+
+        //then
+        assertEquals("Category with id: 1 not found", exception.getMessage());
+        verify(categoryService, times(1)).update(categoryId,categoryDto);
+        verifyNoMoreInteractions(categoryService);
     }
     @Test
-    void createNewCategory_PayloadIsInvalid_ReturnsValidResponseEntity() throws Exception {
-        // given
+    void deleteCategory_CategoryExists_ReturnsNoContent() {
+        //given
+        Long categoryId = 1L;
+        doNothing().when(categoryService).deleteById(categoryId);
 
-        var category = new CategoryDto(null, null, "test-slug");
-        var requestBuilder = post(url)
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(category));
-        mockMvc.perform(requestBuilder)
-                .andExpectAll(
-                        status().isBadRequest(),
-                        content().contentType(MediaType.APPLICATION_PROBLEM_JSON));
+        //when
+        var response = categoryRestController.deleteCategory(categoryId);
 
+        //then
+        assertNotNull(response);
+        assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
+
+        verify(categoryService, times(1)).deleteById(categoryId);
+        verifyNoMoreInteractions(categoryService);
     }
     @Test
-    void deleteCategory_PayloadIsValid_ReturnsValidResponseEntity() throws Exception {
-        var category = createCategory(null,"test-slug","test-name");
-        deleteCategory(category.getId());
-        mockMvc.perform(delete(url + "/" + category.getId()))
-                .andExpectAll(
-                        status().isNotFound());
+    void deleteCategory_CategoryDoesNotExist_ThrowsNoSuchElementException() {
+        //given
+        Long categoryId = 1L;
+        doThrow(new NoSuchElementException("Category with id: " + categoryId + " not found"))
+                .when(categoryService).deleteById(categoryId);
 
-    }
-    @Test
-    public void updateCategory_PayloadIsValid_ReturnsValidResponseEntity() throws Exception {
-        var category = createCategory(null,"test-slug","test-name");
+        //when
+        NoSuchElementException exception = assertThrows(NoSuchElementException.class, () ->
+            categoryRestController.deleteCategory(categoryId)
+        );
+        //then
+        assertEquals("Category with id: 1 not found", exception.getMessage());
 
-        var payload = new CategoryDto(null,"new-slug","new-name");
+        verify(categoryService, times(1)).deleteById(categoryId);
+        verifyNoMoreInteractions(categoryService);
+    }
 
-        mockMvc.perform(put(url + "/" + category.getId())
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(payload)))
-                .andExpectAll(
-                        status().isNoContent())
-                .andReturn()
-                .getResponse();
-        var mvcResponse = mockMvc.perform(get(url + "/" + category.getId()))
-                .andExpectAll(
-                        status().isOk(),
-                        content().contentType(MediaType.APPLICATION_JSON)
-                ).andReturn().getResponse();
 
-        var updatedCategory = objectMapper.readValue(mvcResponse.getContentAsString(), CategoryDto.class);
-        assertEquals(updatedCategory.getId(),category.getId());
-        assertEquals(updatedCategory.getSlug(),payload.getSlug());
-        assertEquals(updatedCategory.getName(),payload.getName());
-        deleteCategory(category.getId());
-    }
-    CategoryDto createCategory(Long id, String slug, String name) throws Exception {
-        var categoryDto = new CategoryDto(id,slug,name);
-        var requestBuilder = post(url)
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(categoryDto));
-        var response = mockMvc.perform(requestBuilder)
-                .andExpectAll(
-                        status().isCreated(),
-                        content().contentType(MediaType.APPLICATION_JSON))
-                .andReturn().getResponse();
-        return objectMapper.readValue(response.getContentAsString(), CategoryDto.class);
-    }
-    void deleteCategory(Long id) throws Exception {
-        mockMvc.perform(delete(url+"/"+id))
-                .andExpect(status().isNoContent());
-    }
 
 }

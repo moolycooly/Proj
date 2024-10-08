@@ -1,0 +1,30 @@
+{
+  "request": {
+    "method": "GET",
+    "url": "/place-categories/"
+  },
+  "response": {
+    "status" : 200,
+    "jsonBody": [
+      {
+        "id": 123,
+        "slug": "airports",
+        "name": "Аэропорты"
+      },
+      {
+        "id": 89,
+        "slug": "amusement",
+        "name": "Развлечения"
+      },
+      {
+        "id": 114,
+        "slug": "animal-shelters",
+        "name": "Питомники"
+      }
+    ],
+    "headers": {
+      "Content-Type": "application/json"
+    }
+  }
+}
+
