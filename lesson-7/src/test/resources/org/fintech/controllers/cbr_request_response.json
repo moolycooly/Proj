@@ -1,0 +1,13 @@
+{
+  "request": {
+    "method": "GET",
+    "url": "/scripts/XML_daily.asp"
+  },
+  "response": {
+    "status": 200,
+    "headers": {
+      "content-type": "application/xml"
+    },
+    "bodyFileName": "cbr_val_curs.xml"
+  }
+}
