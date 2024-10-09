@@ -47,7 +47,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @Testcontainers
 @AutoConfigureMockMvc(printOnlyOnFailure = false)
 @RequiredArgsConstructor
-@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
+@DisplayName("CurrencyRestController integration test")
 public class CurrencyRestControllerTestIT {
     private static final String url = "/currencies";
     @Container
@@ -167,7 +167,7 @@ public class CurrencyRestControllerTestIT {
                                 .build()
                         )));
     }
-//
+
     @ParameterizedTest
     @MethodSource("unvalidConvertCurrencyDto")
     void convertCurrency_PayloadIsInValid_ReturnsValidResponseEntity(ConvertCurrencyDto convertDto) throws Exception {

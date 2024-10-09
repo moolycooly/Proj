@@ -41,13 +41,20 @@ public class CurrencyService {
 
     }
     public BigDecimal convertCurrency(String fromCurrencyCode, String toCurrencyCode, BigDecimal amount) {
+        List<Valute> valuteList = cbrClient
+                .getValCurs()
+                .orElseThrow(ServerIsNotAvailableException::new)
+                .getValuteList();
 
-        Valute fromValute = cbrClient
-                .getValuteByCode(fromCurrencyCode)
-                .orElseThrow(()->new ValuteNotFoundException(fromCurrencyCode));
-        Valute toValute = cbrClient
-                .getValuteByCode(toCurrencyCode)
-                .orElseThrow(()->new ValuteNotFoundException(fromCurrencyCode));
+        Valute fromValute = valuteList.stream()
+                .filter((valute)->valute.getCharCode().equals(fromCurrencyCode))
+                .findFirst()
+                .orElseThrow(()-> new ValuteNotFoundException(fromCurrencyCode));
+
+        Valute toValute = valuteList.stream()
+                .filter((valute)->valute.getCharCode().equals(toCurrencyCode))
+                .findFirst()
+                .orElseThrow(()-> new ValuteNotFoundException(toCurrencyCode));
 
         return amount.multiply(fromValute.getRate()).divide(toValute.getRate(),scaleConveration, RoundingMode.HALF_UP);
 
