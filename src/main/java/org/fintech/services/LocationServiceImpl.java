@@ -28,8 +28,6 @@ public class LocationServiceImpl extends CrudServiceImpl<LocationEntity, Locatio
     @Timelog
     @EventListener(ApplicationReadyEvent.class)
     public void init(ApplicationReadyEvent event) {
-        if (event.getApplicationContext().getEnvironment().acceptsProfiles(Profiles.of("test")))
-            return;
         List<LocationEntity> locations = kudagoClient.getLocations();
         for (LocationEntity location : locations) {
             crudRepos.save(location);

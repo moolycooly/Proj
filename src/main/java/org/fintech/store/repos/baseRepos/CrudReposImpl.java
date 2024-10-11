@@ -44,4 +44,8 @@ public abstract class CrudReposImpl<T extends AbstractEntity> implements  CrudRe
     public void update(Long id, T entity) {
         dataStore.put(id,entity);
     }
+    @Override
+    public void clear() {
+        dataStore.clear();
+    }
 }

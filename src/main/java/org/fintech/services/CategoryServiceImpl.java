@@ -27,8 +27,6 @@ public class CategoryServiceImpl extends CrudServiceImpl<CategoryEntity, Categor
     @Timelog
     @EventListener(ApplicationReadyEvent.class)
     public void init(ApplicationReadyEvent event) {
-        if (event.getApplicationContext().getEnvironment().acceptsProfiles(Profiles.of("test")))
-            return;
         List<CategoryEntity> categories = kudagoClient.getCategories();
         for (CategoryEntity categoryEntity : categories) {
             crudRepos.save(categoryEntity);
