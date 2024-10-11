@@ -1,0 +1,44 @@
+cbr:
+  scale-convertation: 20
+  api:
+    retry: 60
+    base-url: https://www.cbr.ru
+    endpoints:
+      get-rate:
+        url: /scripts/XML_daily.asp
+spring:
+  cache:
+    cache-names: get-val-curs
+    caffeine:
+      spec: expireAfterWrite=60m
+resilience4j:
+  circuitbreaker:
+    configs:
+      default:
+        slidingWindowSize: 15
+        permittedNumberOfCallsInHalfOpenState: 5
+        slowCallDurationThreshold: 4s
+        slowCallRateThreshold: 10
+        failureRateThreshold: 20
+        waitDurationInOpenState: 10s
+        minimumNumberOfCalls: 10
+    instances:
+      cbr-client:
+        baseConfig: default
+  retry:
+    configs:
+      default:
+        max-attempts: 3
+        wait-duration: 100ms
+    instances:
+      cbr-client:
+        base-config: default
+  ratelimiter:
+    configs:
+      default:
+        timeoutDuration: 5s
+        limitForPeriod: 5
+        limit-refresh-period: 1s
+    instances:
+      cbr-client:
+        base-config: default
