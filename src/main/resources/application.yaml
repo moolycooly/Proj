@@ -1,4 +1,7 @@
+server:
+  port: 8081
 kudago:
+  name: kudago
   api:
     base-url: https://kudago.com/public-api/v1.4
     endpoints:
@@ -6,3 +9,29 @@ kudago:
         url: /place-categories/
       get-locations:
         url: /locations/
+      get-events:
+        url: /events/
+  retry:
+    max-attemps: 3
+    delay: 300
+currency:
+  name: currency
+  api:
+    base-url: http://localhost:8080/currencies
+  retry:
+    max-attemps: 3
+    delay: 100
+data-init:
+  threads-count: 2 
+  schedule-threads-count: 1
+  duration: 3600
+  initial-delay: 0
+
+#logging:
+#  level:
+#    org:
+#      apache:
+#        hc:
+#          client5:
+#            http: DEBUG
+#            wire: DEBUG

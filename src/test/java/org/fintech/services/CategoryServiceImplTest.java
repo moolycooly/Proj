@@ -2,6 +2,7 @@ package org.fintech.services;
 
 import org.fintech.client.KudagoClient;
 import org.fintech.dto.CategoryDto;
+import org.fintech.services.impl.CategoryServiceImpl;
 import org.fintech.store.entity.CategoryEntity;
 import org.fintech.store.repos.CategoryRepos;
 import org.junit.jupiter.api.Test;

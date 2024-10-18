@@ -42,13 +42,17 @@ tasks.withType(JavaCompile) {
 dependencies {
 
 
+    implementation 'org.apache.httpcomponents.client5:httpclient5:5.3.1'
 
-
+    implementation("org.springframework.boot:spring-boot-starter-webflux:3.3.3")
     testImplementation("org.springframework.boot:spring-boot-starter-test:3.3.3")
     implementation("org.springframework.boot:spring-boot-starter-web:3.3.3")
     implementation("org.springframework.boot:spring-boot-starter-validation:3.3.3")
+
     implementation("org.springframework.retry:spring-retry:2.0.8")
 
+    implementation("com.fasterxml.jackson.core:jackson-core:2.18.0")
+    implementation("com.fasterxml.jackson.core:jackson-databind:2.18.0")
 
     testImplementation("org.testcontainers:junit-jupiter:1.20.1")
     implementation("org.wiremock.integrations.testcontainers:wiremock-testcontainers-module:1.0-alpha-14")

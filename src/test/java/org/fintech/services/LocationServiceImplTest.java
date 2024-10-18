@@ -2,6 +2,7 @@ package org.fintech.services;
 
 import org.fintech.client.KudagoClient;
 import org.fintech.dto.LocationDto;
+import org.fintech.services.impl.LocationServiceImpl;
 import org.fintech.store.entity.LocationEntity;
 import org.fintech.store.repos.LocationRepos;
 import org.junit.jupiter.api.Test;
