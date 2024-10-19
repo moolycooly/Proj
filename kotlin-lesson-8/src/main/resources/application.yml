@@ -1,0 +1,5 @@
+kudago:
+  delay: 500
+  max-attempts: 5 #или max-retries
+  max-threads-together: 5
+  workers-count: 25

@@ -4,6 +4,7 @@ import jakarta.annotation.PreDestroy;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.testcontainers.shaded.com.google.common.util.concurrent.ThreadFactoryBuilder;
 import org.testcontainers.shaded.org.apache.commons.lang3.concurrent.BasicThreadFactory;
 
 import java.util.concurrent.ExecutorService;
@@ -19,11 +20,9 @@ public class ThreadConfig {
 
     public ThreadConfig(@Value("${data-init.threads-count}") int threadCount,
                         @Value("${data-init.schedule-threads-count}") int scheduleThreadCount) {
-        ThreadFactory baseThreadFactory = new BasicThreadFactory.Builder()
-                .namingPattern("kudago-thread-%d")
-                .build();
-        this.baseThreadPool = Executors.newFixedThreadPool(threadCount, baseThreadFactory);
 
+        ThreadFactory baseThreadFactory = new ThreadFactoryBuilder().setNameFormat("kudago-thread-%d").build();
+        this.baseThreadPool = Executors.newFixedThreadPool(threadCount, baseThreadFactory);
         ThreadFactory scheduleThreadFactory = new BasicThreadFactory.Builder()
                 .namingPattern("kudago-schedule-thread-%d")
                 .build();
