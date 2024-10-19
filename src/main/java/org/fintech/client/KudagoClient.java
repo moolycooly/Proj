@@ -1,6 +1,6 @@
 package org.fintech.client;
 
-import lombok.RequiredArgsConstructor;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.fintech.client.payload.EventResponse;
 import org.fintech.dto.EventDto;
@@ -16,7 +16,7 @@ import org.springframework.retry.annotation.Backoff;
 import org.springframework.retry.annotation.EnableRetry;
 import org.springframework.retry.annotation.Recover;
 import org.springframework.retry.annotation.Retryable;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
@@ -31,10 +31,10 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
-@Component
-@RequiredArgsConstructor
+@Service
 @Slf4j
 @EnableRetry
+@Getter
 public class KudagoClient {
     @Value("${kudago.name}")
     private String serviceName;
@@ -45,14 +45,18 @@ public class KudagoClient {
     @Value("${kudago.api.endpoints.get-events.url}")
     private String urlGetEvents;
     @Autowired
-    @Lazy
-    private KudagoClient kudagoClient;
-    @Autowired
     @Qualifier("kudagoRestClient")
     private RestClient kudagoRestClient;
+
     @Autowired
     @Qualifier("kudagoWebClient")
     private WebClient kudagoWebClient;
+
+    @Autowired
+    @Lazy
+    private KudagoClient kudagoClient;
+
+
     @Retryable(
             retryFor = { RuntimeException.class },
             maxAttemptsExpression = "${kudago.retry.max-attemps}",
@@ -83,8 +87,7 @@ public class KudagoClient {
         return list;
     }
 
-    public List<EventDto> getEventsAsync(LocalDate dateFrom, LocalDate dateTo) {
-        int pageSize = 100;
+    public List<EventDto> getEventsAsync(LocalDate dateFrom, LocalDate dateTo,int pageSize) {
         UriBuilder uriBuilder = UriComponentsBuilder
                 .fromPath(urlGetEvents)
                 .queryParam("actual_since", dateFrom.toString())
@@ -124,7 +127,6 @@ public class KudagoClient {
             backoff = @Backoff(delayExpression = "${kudago.retry.delay}")
     )
     public EventResponse getEventsSyncronized(String uri) {
-        log.debug(uri);
         var response = kudagoRestClient
                 .get()
                 .uri(uri)
@@ -133,10 +135,9 @@ public class KudagoClient {
         return response.getBody();
     }
 
-    public Mono<List<EventDto>> getEventsMono(LocalDate dateFrom, LocalDate dateTo) {
-        int pageSize = 100;
+    public Mono<List<EventDto>> getEventsMono(LocalDate dateFrom, LocalDate dateTo,int pageSize) {
         return Flux.range(1,Integer.MAX_VALUE)
-                .concatMap(page -> kudagoClient.getEventsFromPage(dateFrom, dateTo, page,pageSize))
+                .concatMap(page -> getEventsFromPage(dateFrom, dateTo, page,pageSize))
                 .takeWhile(response->!response.getResults().isEmpty())
                 .flatMapIterable(EventResponse::getResults)
                 .collectList();
@@ -162,7 +163,7 @@ public class KudagoClient {
                 .bodyToMono(EventResponse.class)
                 .onErrorResume(WebClientResponseException.NotFound.class, ex->Mono.just(new EventResponse()))
                 .onErrorResume(WebClientResponseException.class, ex->Mono.error(new ServiceIsNotAvailableException(serviceName)))
-                .onErrorResume(Exception.class, ex->Mono.error(new ServiceIsNotAvailableException("Currency")) );
+                .onErrorResume(Exception.class, ex->Mono.error(new ServiceIsNotAvailableException(serviceName)) );
     }
     @Recover
     public List<LocationEntity> getLocationsRecovery(RuntimeException e) {

@@ -29,7 +29,7 @@ public class EventServiceImpl implements EventService {
     public CompletableFuture<List<EventDto>> getEventsCompletableFuture(Double budget, String currencyCode,
                                     LocalDate dateFrom, LocalDate dateTo) {
 
-        var currentEvents = CompletableFuture.supplyAsync(()->kudagoClient.getEventsAsync(dateFrom,dateTo));
+        var currentEvents = CompletableFuture.supplyAsync(()->kudagoClient.getEventsAsync(dateFrom,dateTo,100));
         var currentBudget = CompletableFuture.supplyAsync(()->currencyClient.convertCurrency(currencyCode,"RUB", BigDecimal.valueOf(budget)));
 
         CompletableFuture<List<EventDto>> future = new CompletableFuture<>();
@@ -51,7 +51,7 @@ public class EventServiceImpl implements EventService {
     public Mono<List<EventDto>> getEventsProjectReactor(Double budget, String currencyCode, LocalDate dateFrom, LocalDate dateTo) {
         return Mono.zip(
                 currencyClient.convertCurrencyMono(currencyCode, "RUB", BigDecimal.valueOf(budget)),
-                kudagoClient.getEventsMono(dateFrom,dateTo)
+                kudagoClient.getEventsMono(dateFrom,dateTo,100)
         ).map(tuple -> {
             BigDecimal tmpBudget = tuple.getT1();
             List<EventDto> events = tuple.getT2();
