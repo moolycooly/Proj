@@ -14,7 +14,7 @@ import java.util.List;
 @NoArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class EventResponse {
-    private Integer count;
+    private Integer count=0;
     private String next;
     private String previous;
     private List<EventDto> results =new ArrayList<>();

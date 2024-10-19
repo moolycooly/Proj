@@ -10,6 +10,7 @@ import org.fintech.store.entity.LocationEntity;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.retry.annotation.Backoff;
 import org.springframework.retry.annotation.EnableRetry;
@@ -34,7 +35,6 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @Slf4j
 @EnableRetry
-
 public class KudagoClient {
     @Value("${kudago.name}")
     private String serviceName;
@@ -44,7 +44,9 @@ public class KudagoClient {
     private String urlGetLocations;
     @Value("${kudago.api.endpoints.get-events.url}")
     private String urlGetEvents;
-
+    @Autowired
+    @Lazy
+    private KudagoClient kudagoClient;
     @Autowired
     @Qualifier("kudagoRestClient")
     private RestClient kudagoRestClient;
@@ -82,7 +84,7 @@ public class KudagoClient {
     }
 
     public List<EventDto> getEventsAsync(LocalDate dateFrom, LocalDate dateTo) {
-        int pageSize = 20; // default
+        int pageSize = 100;
         UriBuilder uriBuilder = UriComponentsBuilder
                 .fromPath(urlGetEvents)
                 .queryParam("actual_since", dateFrom.toString())
@@ -93,7 +95,7 @@ public class KudagoClient {
                 .queryParam("page_size",pageSize)
                 .queryParam("page",1);
 
-        EventResponse responce = getEventsSyncronized(uriBuilder.toUriString());
+        EventResponse responce = kudagoClient.getEventsSyncronized(uriBuilder.toUriString());
         int totalCountPages = (responce.getCount()+pageSize-1)/pageSize;
         List<CompletableFuture<EventResponse>> completableFutures = new ArrayList<>();
 
@@ -101,7 +103,7 @@ public class KudagoClient {
             int page = i;
             uriBuilder.replaceQueryParam("page",page);
             String url = new String(uriBuilder.toUriString());
-            var response = CompletableFuture.supplyAsync(() -> getEventsSyncronized(url))
+            var response = CompletableFuture.supplyAsync(() -> kudagoClient.getEventsSyncronized(url))
                     .exceptionally(ex->null);
             completableFutures.add(response);
         }
@@ -122,6 +124,7 @@ public class KudagoClient {
             backoff = @Backoff(delayExpression = "${kudago.retry.delay}")
     )
     public EventResponse getEventsSyncronized(String uri) {
+        log.debug(uri);
         var response = kudagoRestClient
                 .get()
                 .uri(uri)
@@ -131,9 +134,9 @@ public class KudagoClient {
     }
 
     public Mono<List<EventDto>> getEventsMono(LocalDate dateFrom, LocalDate dateTo) {
-
+        int pageSize = 100;
         return Flux.range(1,Integer.MAX_VALUE)
-                .concatMap(page -> getEventsFromPage(dateFrom, dateTo, page))
+                .concatMap(page -> kudagoClient.getEventsFromPage(dateFrom, dateTo, page,pageSize))
                 .takeWhile(response->!response.getResults().isEmpty())
                 .flatMapIterable(EventResponse::getResults)
                 .collectList();
@@ -143,7 +146,7 @@ public class KudagoClient {
             maxAttemptsExpression = "${kudago.retry.max-attemps}",
             backoff = @Backoff(delayExpression = "${kudago.retry.delay}")
     )
-    private Mono<EventResponse> getEventsFromPage(LocalDate dateFrom, LocalDate dateTo, int page) {
+    private Mono<EventResponse> getEventsFromPage(LocalDate dateFrom, LocalDate dateTo, int page,int pageSize) {
         return kudagoWebClient.get()
                 .uri(uriBuilder -> uriBuilder
                         .path(urlGetEvents)
@@ -153,6 +156,7 @@ public class KudagoClient {
                         .queryParam("fields", List.of("id,title,price,is_free,description"))
                         .queryParam("location","nsk")
                         .queryParam("page",page)
+                        .queryParam("page_size",pageSize)
                         .build())
                 .retrieve()
                 .bodyToMono(EventResponse.class)

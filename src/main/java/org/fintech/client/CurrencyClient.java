@@ -14,6 +14,7 @@ import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
 import org.springframework.retry.annotation.Backoff;
 import org.springframework.retry.annotation.EnableRetry;
+import org.springframework.retry.annotation.Recover;
 import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.ResourceAccessException;
@@ -44,7 +45,7 @@ public class CurrencyClient {
     @Retryable(
             retryFor = { RuntimeException.class },
             maxAttemptsExpression = "${currency.retry.max-attemps}",
-            backoff = @Backoff(delayExpression = "${kudago.retry.delay}")
+            backoff = @Backoff(delayExpression = "${currency.retry.delay}")
     )
 
     public BigDecimal convertCurrency(String from, String to, BigDecimal amount){
@@ -102,6 +103,14 @@ public class CurrencyClient {
             i++;
         }
         return errors.replace("\"","");
+    }
+    @Recover
+    public Mono<BigDecimal> convertCurrencyMonoRecover(RuntimeException e,String from, String to, BigDecimal amount){
+        throw new ServiceIsNotAvailableException(serviceName);
+    }
+    @Recover
+    public BigDecimal convertCurrencyRecover(RuntimeException e,String from, String to, BigDecimal amount){
+        throw new ServiceIsNotAvailableException(serviceName);
     }
 
 
