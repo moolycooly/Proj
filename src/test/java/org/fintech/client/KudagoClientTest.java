@@ -83,7 +83,7 @@ public class KudagoClientTest {
         LocalDate dateFrom = LocalDate.parse("2023-10-21", DateTimeFormatter.ISO_DATE);
         LocalDate dateTo = LocalDate.parse("2024-10-25", DateTimeFormatter.ISO_DATE);
         //when
-        var t = kudagoClient.getEventsAsync(dateFrom,dateTo);
+        var t = kudagoClient.getEventsAsync(dateFrom,dateTo,100);
         //then
         assertEquals(t,eventResponse.getResults());
     }
@@ -93,7 +93,7 @@ public class KudagoClientTest {
         LocalDate dateFrom = LocalDate.parse("2026-10-21", DateTimeFormatter.ISO_DATE);
         LocalDate dateTo = LocalDate.parse("2027-10-25", DateTimeFormatter.ISO_DATE);
         //when
-        var t = kudagoClient.getEventsAsync(dateFrom,dateTo);
+        var t = kudagoClient.getEventsAsync(dateFrom,dateTo,100);
         //then
         assertTrue(t.isEmpty());
     }
