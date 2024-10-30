@@ -26,7 +26,7 @@ public class LocationStateRestController {
         return ResponseEntity.ok("State was saved");
     }
     @PutMapping("/restore")
-    public ResponseEntity<?> restoreLocationState(@PathVariable("dateFrom") LocalDateTime dateFrom, @PathVariable("dateTo") LocalDateTime dateTo) {
+    public ResponseEntity<?> restoreLocationState(@RequestParam("dateFrom") LocalDateTime dateFrom, @RequestParam("dateTo") LocalDateTime dateTo) {
         locationService.restoreState(dateFrom,dateTo);
         return ResponseEntity.ok("State was restored");
     }
