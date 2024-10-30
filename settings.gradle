@@ -1,3 +1,7 @@
+plugins {
+    id 'org.gradle.toolchains.foojay-resolver-convention' version '0.8.0'
+}
 rootProject.name = 'Proj'
 include 'timelog-starter'
 include 'lesson-7'
+include 'lesson-10'
