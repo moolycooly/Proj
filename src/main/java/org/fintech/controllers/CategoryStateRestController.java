@@ -25,12 +25,12 @@ public class CategoryStateRestController {
         categoryService.saveState();
         return ResponseEntity.ok("State was saved");
     }
-    @GetMapping("/restore")
+    @PutMapping("/restore")
     public ResponseEntity<?> restoreCategoryState(@RequestParam("dateFrom") LocalDateTime dateFrom, @RequestParam("dateTo") LocalDateTime dateTo) {
         categoryService.restoreState(dateFrom,dateTo);
         return ResponseEntity.ok("State was restored");
     }
-    @GetMapping("/restore/{id}")
+    @PutMapping("/restore/{id}")
     public ResponseEntity<?> restoreCategoryState(@PathVariable("id") int id) {
         categoryService.restoreState(id);
         return ResponseEntity.ok("State was restored");

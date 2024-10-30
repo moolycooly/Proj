@@ -25,6 +25,6 @@ public class GlobalExceptionHandler {
   }
   @ExceptionHandler(NoSuchState.class)
   public ResponseStatusException noSuchStateCategories(NoSuchState e) {
-    return new ResponseStatusException(HttpStatus.BAD_REQUEST,"State was not found");
+    return new ResponseStatusException(HttpStatus.NOT_FOUND,"State was not found");
   }
 }
