@@ -47,5 +47,6 @@ public abstract class CrudReposImpl<T extends AbstractEntity> implements  CrudRe
     @Override
     public void clear() {
         dataStore.clear();
+        counter.set(0);
     }
 }

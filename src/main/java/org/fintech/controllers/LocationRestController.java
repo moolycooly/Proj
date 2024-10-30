@@ -47,6 +47,9 @@ public class LocationRestController {
         locationService.deleteById(id);
         return ResponseEntity.noContent().build();
     }
+
+
+    @GetMapping("/state/")
     @ExceptionHandler(NoSuchElementException.class)
     public ResponseStatusException elementNotFound(NoSuchElementException e) {
         return new ResponseStatusException(HttpStatus.NOT_FOUND,"Location was not found");

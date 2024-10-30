@@ -23,5 +23,8 @@ public class GlobalExceptionHandler {
     return new ResponseStatusException(HttpStatus.BAD_REQUEST, errors.toString());
 
   }
-
+  @ExceptionHandler(NoSuchState.class)
+  public ResponseStatusException noSuchStateCategories(NoSuchState e) {
+    return new ResponseStatusException(HttpStatus.BAD_REQUEST,"State was not found");
+  }
 }
