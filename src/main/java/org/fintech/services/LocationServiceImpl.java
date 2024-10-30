@@ -14,8 +14,6 @@ import org.fintech.store.entity.LocationEntity;
 import org.fintech.store.repos.LocationRepos;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.context.event.ApplicationReadyEvent;
-import org.springframework.context.event.EventListener;
 
 import org.springframework.stereotype.Service;
 
@@ -54,8 +52,7 @@ public class LocationServiceImpl extends CrudServiceImpl<LocationEntity, Locatio
 
     @Override
     @Timelog
-    @EventListener(ApplicationReadyEvent.class)
-    public void init(ApplicationReadyEvent event) {
+    public void init() {
         List<LocationEntity> locations = kudagoClient.getLocations();
         for (LocationEntity location : locations) {
             crudRepos.save(location);

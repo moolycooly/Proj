@@ -14,8 +14,6 @@ import org.fintech.store.entity.CategoryEntity;
 import org.fintech.store.repos.CategoryRepos;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.context.event.ApplicationReadyEvent;
-import org.springframework.context.event.EventListener;
 
 import org.springframework.stereotype.Service;
 
@@ -54,8 +52,7 @@ public class CategoryServiceImpl extends CrudServiceImpl<CategoryEntity, Categor
 
     @Override
     @Timelog
-    @EventListener(ApplicationReadyEvent.class)
-    public void init(ApplicationReadyEvent event) {
+    public void init() {
         List<CategoryEntity> categories = kudagoClient.getCategories();
         for (CategoryEntity categoryEntity : categories) {
             crudRepos.save(categoryEntity);
