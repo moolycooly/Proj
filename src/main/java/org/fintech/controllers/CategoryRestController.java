@@ -53,6 +53,12 @@ public class CategoryRestController {
         return ResponseEntity.noContent().build();
 
     }
+
+    @GetMapping("/save-state")
+    public ResponseEntity<?> saveCategoriesState() {
+        categoryService.saveState();
+        return ResponseEntity.ok("State was saved");
+    }
     @ExceptionHandler(NoSuchElementException.class)
     public ResponseStatusException elementNotFound(NoSuchElementException e) {
         return new ResponseStatusException(HttpStatus.NOT_FOUND,"Category was not found");
