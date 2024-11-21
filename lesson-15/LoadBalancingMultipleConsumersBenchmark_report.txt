@@ -1,0 +1,12 @@
+Benchmark, Mode, Throughput (ops/s), Latency (ms), Consumer Processing Time (ms), Message Delivery Delay (ms)
+testKafkaLoadBalancing, AverageTime, 125,33, 13432,67, 0,00
+testRabbitMQLoadBalancing, AverageTime, 0,00, 0,00, 0,00
+Benchmark, Mode, Throughput (ops/s), Latency (ms), Consumer Processing Time (ms), Message Delivery Delay (ms)
+testKafkaLoadBalancing, AverageTime, 0,00, 0,00, 0,00
+testRabbitMQLoadBalancing, AverageTime, 11032,00, 2551,67, 0,00
+Benchmark, Mode, Throughput (ops/s), Latency (ms), Consumer Processing Time (ms), Message Delivery Delay (ms)
+testKafkaLoadBalancing, AverageTime, 122,67, 13440,33, 0,00
+testRabbitMQLoadBalancing, AverageTime, 0,00, 0,00, 0,00
+Benchmark, Mode, Throughput (ops/s), Latency (ms), Consumer Processing Time (ms), Message Delivery Delay (ms)
+testKafkaLoadBalancing, AverageTime, 0,00, 0,00, 0,00
+    testRabbitMQLoadBalancing, AverageTime, 11197,00, 2328,00, 0,00
