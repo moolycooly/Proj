@@ -2,9 +2,11 @@ package org.fintech.service;
 
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.MeterRegistry;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Service
 @Slf4j
@@ -25,5 +27,17 @@ public class ExampleService {
         } catch (InterruptedException e) {
             log.error(e.getMessage());
         }
+    }
+
+    public void getOutOfMemory() {
+
+        List<Integer> list = new ArrayList<>();
+        while(true) {
+            list.add(1);
+        }
+    }
+
+    public void getStackOverflow() {
+        getStackOverflow();
     }
 }

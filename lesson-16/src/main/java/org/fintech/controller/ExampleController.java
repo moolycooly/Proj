@@ -25,4 +25,14 @@ public class ExampleController {
             log.info("Task completed!");
         }
     }
+
+    @GetMapping("/stack-overflow")
+    public void getStackOverflow() {
+        exampleService.getStackOverflow();
+    }
+
+    @GetMapping("/out-of-memory")
+    public void getOutOfMemoryError() {
+        exampleService.getOutOfMemory();
+    }
 }
